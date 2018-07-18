@@ -9,16 +9,22 @@ import java.util.*;
  */
 public class Generics {
 
-    static <T> void method(T t,  List<T> list) {
+    static void printList(List<Object> list) {
+        list.forEach(s -> System.out.print(s));
+    }
 
+    static void printList2(List<?> list) {
+        list.forEach(s -> System.out.print(s));
     }
 
 
     public static void main(String[] args) {
-      Generics.<Integer>method(1, Arrays.asList(1,2,3));
+        printList(Arrays.asList(1,2,3,4,5,6));
+        System.out.println();
+        printList2(Arrays.asList(1,2,3,4,5,6));
 
-      List<String> str = new ArrayList<>(); //java7
-      List<String> c = Collections.emptyList();//arguments가 없어도 알아서 타입을 추론 해줌.
+        List<Integer> list = Arrays.asList(1, 2, 3);
+        printList2(list);
     }
 
 }
