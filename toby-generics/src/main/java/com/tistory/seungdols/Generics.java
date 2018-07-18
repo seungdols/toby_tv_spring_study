@@ -11,13 +11,13 @@ import java.util.List;
  */
 public class Generics {
 
-    <T> void print(T t) { // Method Level에 Type Paramter
+    static <T> void print(T t) {
         System.out.println(t.toString());
     }
 
     public static void main(String[] args) {
-        new Generics().print("Hello");
-        new Generics().print("Seungdols Company");
+        print("Hello");
+        print("Seungdols Company");
 
     }
 
