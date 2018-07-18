@@ -1,10 +1,6 @@
 package com.tistory.seungdols;
 
-import java.io.Closeable;
-import java.io.Serializable;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -14,15 +10,17 @@ import java.util.List;
  */
 public class Generics {
 
-    static <T extends Comparable<T>> long countGreaterThan(T [] arr, T elem) {
-        return Arrays.stream(arr).filter(s -> s.compareTo(elem) > 0).count();
-    }
-
     public static void main(String[] args) {
-//        Integer[] arr = new Integer[] {1,2,3,4,5,6,7,8,9};
-        String [] arr = new String[] {"a", "b", "c", "d","e"};
-        System.out.println(countGreaterThan(arr, "c"));
-    }
+        Integer integer = 10;
+        Number number = integer;
 
+        List<Integer> integerList = new ArrayList<>();
+//        Quiz1)
+//        List<Number> numberList = integerList;
+
+        ArrayList<Integer> arrayList = new ArrayList<>();
+//        Quiz2)
+//        List<Integer> integers = arrayList;
+    }
 
 }
