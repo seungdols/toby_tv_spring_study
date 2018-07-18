@@ -13,13 +13,15 @@ import java.util.List;
  * @DATE 2018. 7. 18.
  */
 public class Generics {
-    static long countGreaterThan(Integer[] arr, Integer elem) {
-        return Arrays.stream(arr).filter(s -> s > elem).count();
+
+    static <T extends Comparable<T>> long countGreaterThan(T [] arr, T elem) {
+        return Arrays.stream(arr).filter(s -> s.compareTo(elem) > 0).count();
     }
 
     public static void main(String[] args) {
-        Integer[] arr = new Integer[] {1,2,3,4,5,6,7,8,9};
-        System.out.println(countGreaterThan(arr, 4));
+//        Integer[] arr = new Integer[] {1,2,3,4,5,6,7,8,9};
+        String [] arr = new String[] {"a", "b", "c", "d","e"};
+        System.out.println(countGreaterThan(arr, "c"));
     }
 
 
