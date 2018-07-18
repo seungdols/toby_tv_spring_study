@@ -9,22 +9,20 @@ import java.util.*;
  */
 public class Generics {
 
-    static void printList(List<Object> list) {
-        list.forEach(s -> System.out.print(s));
-    }
+    static class A {}
 
-    static void printList2(List<?> list) {
-        list.forEach(s -> System.out.print(s));
+    static class B extends A{
     }
-
 
     public static void main(String[] args) {
-        printList(Arrays.asList(1,2,3,4,5,6));
-        System.out.println();
-        printList2(Arrays.asList(1,2,3,4,5,6));
+        List<B> listB = new ArrayList<B>();
+//        List<A> listA = listB;
+//        List<? extends A> listA = listB;
+//        List<? super B> listA2 = listB;
+//        List<? super A> listA = listB;
 
-        List<Integer> list = Arrays.asList(1, 2, 3);
-        printList2(list);
+//        listA.add(new A());
+//        listA.add(null);
     }
 
 }
