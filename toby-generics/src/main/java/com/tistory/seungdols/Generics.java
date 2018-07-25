@@ -9,20 +9,31 @@ import java.util.*;
  */
 public class Generics {
 
-    static class A {}
-
-    static class B extends A{
-    }
-
     public static void main(String[] args) {
-        List<B> listB = new ArrayList<B>();
-//        List<A> listA = listB;
-//        List<? extends A> listA = listB;
-//        List<? super B> listA2 = listB;
-//        List<? super A> listA = listB;
+        List<Integer> list = Arrays.asList(1,2,3,4,5,6,7);
+//        System.out.println(isEmpty(list));
 
-//        listA.add(new A());
-//        listA.add(null);
+        System.out.println(frequency(list, 3));
     }
+
+    //generics
+//    static <T> long frequency(List<T> list,  T elem) {
+//        return list.stream().filter(s -> s.equals(elem)).count();
+//    }
+
+    //wildcards
+    static long frequency(List<?> list,  Object elem) {
+        return list.stream().filter(s -> s.equals(elem)).count();
+    }
+
+    //generics
+//    private static <T> boolean isEmpty(List<T> list) {
+//        return list.size() == 0;
+//    }
+
+    //wildcards
+//    private static boolean isEmpty(List<?> list) {
+//        return list.size() == 0;
+//    }
 
 }
