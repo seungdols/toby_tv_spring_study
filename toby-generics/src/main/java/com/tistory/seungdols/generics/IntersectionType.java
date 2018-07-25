@@ -9,46 +9,33 @@ import java.util.function.Function;
  * @AUTHOR seungdols
  * @DATE 2018. 7. 26.
  */
-public class IntersectionType implements Serializable{
+public class IntersectionType {
 
-    interface Hello extends Function{
+    interface DelegateTo<T> {
+        T delegate();
+    }
+
+    interface Hello extends DelegateTo<String> {
         default void hello() {
-            System.out.println("Hello");
+            System.out.println("Hello " + delegate());
         }
     }
 
-    interface Hi extends Function {
-        default void hi() {
-            System.out.println("Hi");
+    interface Uppercase extends DelegateTo<String> {
+        default void uppercase() {
+            System.out.println(delegate().toUpperCase());
         }
     }
-
-    interface Printer {
-        default void print(String str) {
-            System.out.println(str);
-        }
-    }
-
 
     public static void main(String[] args) {
-//        hello((Function & Serializable & Cloneable) s -> s); //casting OK.
-        hello((Function & Hello & Hi) s -> s);
-        run((Function & Hello & Hi & Printer) s -> s, o -> {
+        run((DelegateTo<String> & Hello & Uppercase) () -> "Seungdols Company", o -> {
             o.hello();
-            o.hi();
-            o.print("Lambda");
+            o.uppercase();
         });
     }
 
-//    private static void hello(Function t) {
-//
-//    }
-    private static <T extends Function & Hello & Hi> void hello(T t) {
-        t.hello();
-        t.hi();
-    }
-
-    private static <T extends Function> void run(T t, Consumer<T> consumer) {
+    //Callback 방식
+    private static <T extends DelegateTo<S>, S> void run(T t, Consumer<T> consumer) {
         consumer.accept(t);
     }
 
