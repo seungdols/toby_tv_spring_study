@@ -1,4 +1,4 @@
-package com.tistory.seungdols;
+package com.tistory.seungdols.generics;
 
 import java.util.*;
 
