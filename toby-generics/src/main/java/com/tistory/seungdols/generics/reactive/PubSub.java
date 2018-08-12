@@ -7,6 +7,9 @@ import org.reactivestreams.Subscription;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @PACKAGE com.tistory.seungdols.generics.reactive
@@ -14,11 +17,13 @@ import java.util.Iterator;
  * @DATE 2018. 8. 12.
  */
 public class PubSub {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         //  Observerable ---- Publisher
         //  Observer    ----- Subsriber
 
         Iterable<Integer> itr = Arrays.asList(1, 2, 3, 4, 5);
+
+        ExecutorService executorService = Executors.newCachedThreadPool();
 
         Publisher publisher = new Publisher() {
             @Override
@@ -27,19 +32,22 @@ public class PubSub {
                 s.onSubscribe(new Subscription() {
                     @Override
                     public void request(long n) {
-                        try {
+                        executorService.execute(() -> {
+                            try {
+                                int i = 0;
 
-                            while (n-- > 0) {
-                                if (it.hasNext()) {
-                                    s.onNext(it.next());
-                                } else {
-                                    s.onComplete();
-                                    break;
+                                while (i++ < n) {
+                                    if (it.hasNext()) {
+                                        s.onNext(it.next());
+                                    } else {
+                                        s.onComplete();
+                                        break;
+                                    }
                                 }
+                            } catch (RuntimeException e) {
+                                s.onError(e);
                             }
-                        } catch (RuntimeException e) {
-                            s.onError(e);
-                        }
+                        });
                     }
 
                     @Override
@@ -62,13 +70,13 @@ public class PubSub {
 
             @Override
             public void onNext(Integer integer) {
-                System.out.println("onNext " + integer);
+                System.out.println(Thread.currentThread().getName() + " onNext " + integer);
                 this.subscription.request(1);
             }
 
             @Override
             public void onError(Throwable t) {
-                System.out.println("onError");
+                System.out.println("onError: " + t.getMessage());
             }
 
             @Override
@@ -78,5 +86,7 @@ public class PubSub {
         };
 
         publisher.subscribe(subscriber);
+        executorService.awaitTermination(10, TimeUnit.HOURS);
+        executorService.shutdown();
     }
 }
