@@ -16,31 +16,13 @@ import java.util.stream.Stream;
 @Slf4j
 public class PubSub {
     public static void main(String[] args) {
-        Publisher<Integer> pub = new Publisher<Integer>() {
-            Iterable<Integer> iter = Stream.iterate(1, a -> a + 1).limit(10).collect(Collectors.toList());
+        Publisher<Integer> pub = iterPub(Stream.iterate(1, a -> a + 1).limit(10).collect(Collectors.toList()));
 
-            @Override
-            public void subscribe(Subscriber<? super Integer> sub) {
-                sub.onSubscribe(new Subscription() {
-                    @Override
-                    public void request(long n) {
-                        try {
-                            iter.forEach(s -> sub.onNext(s));
-                            sub.onComplete();
-                        } catch (Throwable t) {
-                            sub.onError(t);
-                        }
-                    }
+        pub.subscribe(LogSub());
+    }
 
-                    @Override
-                    public void cancel() {
-
-                    }
-                });
-            }
-        };
-
-        Subscriber<Integer> sub = new Subscriber<Integer>() {
+    private static Subscriber<Integer> LogSub() {
+        return new Subscriber<Integer>() {
             @Override
             public void onSubscribe(Subscription s) {
                 System.out.println("onSubscribe()");
@@ -62,7 +44,30 @@ public class PubSub {
                 System.out.println("onComplete()");
             }
         };
+    }
 
-        pub.subscribe(sub);
+    private static Publisher<Integer> iterPub(Iterable<Integer> iter) {
+        return new Publisher<Integer>() {
+
+            @Override
+            public void subscribe(Subscriber<? super Integer> sub) {
+                sub.onSubscribe(new Subscription() {
+                    @Override
+                    public void request(long n) {
+                        try {
+                            iter.forEach(s -> sub.onNext(s));
+                            sub.onComplete();
+                        } catch (Throwable t) {
+                            sub.onError(t);
+                        }
+                    }
+
+                    @Override
+                    public void cancel() {
+
+                    }
+                });
+            }
+        };
     }
 }
