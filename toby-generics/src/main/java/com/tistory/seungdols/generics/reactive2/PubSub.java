@@ -4,6 +4,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -17,8 +18,31 @@ public class PubSub {
     public static void main(String[] args) {
         Publisher<Integer> pub = iterPub(Stream.iterate(1, a -> a + 1).limit(10).collect(Collectors.toList()));
 //        Publisher<Integer> mapPub = mapPub(pub, (Function<Integer, Integer>) s -> s * 10);
-        Publisher<Integer> sumPub = sumPub(pub);
-        sumPub.subscribe(LogSub());
+//        Publisher<Integer> sumPub = sumPub(pub);
+        Publisher<Integer> reducePub = reducePub(pub, 0, (BiFunction<Integer, Integer, Integer>) (a, b) -> a + b);
+        reducePub.subscribe(LogSub());
+    }
+
+    private static Publisher<Integer> reducePub(Publisher<Integer> pub, int init, BiFunction<Integer, Integer, Integer> function) {
+        return new Publisher<Integer>() {
+            @Override
+            public void subscribe(Subscriber<? super Integer> sub) {
+                pub.subscribe(new DelegateSub(sub) {
+                    int result = init;
+
+                    @Override
+                    public void onNext(Integer integer) {
+                        result = function.apply(result, integer);
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        sub.onNext(result);
+                        sub.onComplete();
+                    }
+                });
+            }
+        };
     }
 
     private static Publisher<Integer> sumPub(Publisher<Integer> pub) {
