@@ -1,10 +1,10 @@
 package com.tistory.seungdols.generics.reactive2;
 
-import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -13,12 +13,42 @@ import java.util.stream.Stream;
  * @AUTHOR seungdols
  * @DATE 2018. 8. 20.
  */
-@Slf4j
 public class PubSub {
     public static void main(String[] args) {
         Publisher<Integer> pub = iterPub(Stream.iterate(1, a -> a + 1).limit(10).collect(Collectors.toList()));
+        Publisher<Integer> mapPub = mapPub(pub, (Function<Integer, Integer>) s -> s * 10);
+        Publisher<Integer> map2Pub = mapPub(mapPub, (Function<Integer, Integer>) s -> -s);
+        map2Pub.subscribe(LogSub());
+    }
 
-        pub.subscribe(LogSub());
+    private static Publisher<Integer> mapPub(Publisher<Integer> pub, Function<Integer, Integer> function) {
+        return new Publisher<Integer>() {
+            @Override
+            public void subscribe(Subscriber<? super Integer> sub) {
+                pub.subscribe(new Subscriber<Integer>() {
+                    @Override
+                    public void onSubscribe(Subscription s) {
+                        sub.onSubscribe(s);//중계만 해준다.
+                    }
+
+                    @Override
+                    public void onNext(Integer integer) {
+                        sub.onNext(integer);
+                    }
+
+                    @Override
+                    public void onError(Throwable t) {
+                        sub.onError(t);
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        sub.onComplete();
+                    }
+                });
+            }
+
+        };
     }
 
     private static Subscriber<Integer> LogSub() {
