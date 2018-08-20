@@ -15,4 +15,5 @@ dependencies {
     compile "io.projectreactor:reactor-core:3.0.3.RELEASE"
     compile group: 'org.reactivestreams', name: 'reactive-streams', version: '1.0.2'
     compileOnly 'org.projectlombok:lombok:1.18.2'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.0.4.RELEASE'
 }
