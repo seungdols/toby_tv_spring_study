@@ -4,6 +4,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -16,33 +17,33 @@ import java.util.stream.Stream;
 public class PubSub {
     public static void main(String[] args) {
         Publisher<Integer> pub = iterPub(Stream.iterate(1, a -> a + 1).limit(10).collect(Collectors.toList()));
-        Publisher<Integer> mapPub = mapPub(pub, (Function<Integer, Integer>) s -> s * 10);
+        Publisher<String> mapPub = mapPub(pub, s -> "[" + s + "]");
 //        Publisher<Integer> sumPub = sumPub(pub);
-//        Publisher<Integer> reducePub = reducePub(pub, 0, (BiFunction<Integer, Integer, Integer>) (a, b) -> a + b);
-        mapPub.subscribe(LogSub());
+        Publisher<String> reducePub = reducePub(pub, "", (a, b) -> a + "-" + b);
+        reducePub.subscribe(LogSub());
     }
 
-//    private static Publisher<Integer> reducePub(Publisher<Integer> pub, int init, BiFunction<Integer, Integer, Integer> function) {
-//        return new Publisher<Integer>() {
-//            @Override
-//            public void subscribe(Subscriber<? super Integer> sub) {
-//                pub.subscribe(new DelegateSub(sub) {
-//                    int result = init;
-//
-//                    @Override
-//                    public void onNext(Integer integer) {
-//                        result = function.apply(result, integer);
-//                    }
-//
-//                    @Override
-//                    public void onComplete() {
-//                        sub.onNext(result);
-//                        sub.onComplete();
-//                    }
-//                });
-//            }
-//        };
-//    }
+    private static <T, R> Publisher<R> reducePub(Publisher<T> pub, R init, BiFunction<R, T, R> function) {
+        return new Publisher<R>() {
+            @Override
+            public void subscribe(Subscriber<? super R> sub) {
+                pub.subscribe(new DelegateSub<T, R>(sub) {
+                    R result = init;
+
+                    @Override
+                    public void onNext(T i) {
+                        result = function.apply(result, i);
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        sub.onNext(result);
+                        sub.onComplete();
+                    }
+                });
+            }
+        };
+    }
 
 //    private static Publisher<Integer> sumPub(Publisher<Integer> pub) {
 //        return new Publisher<Integer>() {
@@ -66,11 +67,11 @@ public class PubSub {
 //        };
 //    }
 
-    private static <T> Publisher<T> mapPub(Publisher<T> pub, Function<T, T> function) {
-        return new Publisher<T>() {
+    private static <T, R> Publisher<R> mapPub(Publisher<T> pub, Function<T, R> function) {
+        return new Publisher<R>() {
             @Override
-            public void subscribe(Subscriber<? super T> sub) {
-                pub.subscribe(new DelegateSub<T>(sub) {
+            public void subscribe(Subscriber<? super R> sub) {
+                pub.subscribe(new DelegateSub<T, R>(sub) {
                     @Override
                     public void onNext(T i) {
                         sub.onNext(function.apply(i));

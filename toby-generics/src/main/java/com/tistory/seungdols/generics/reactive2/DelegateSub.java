@@ -8,10 +8,10 @@ import org.reactivestreams.Subscription;
  * @AUTHOR seungdols
  * @DATE 2018. 8. 21.
  */
-public class DelegateSub<T> implements Subscriber<T> {
+public class DelegateSub<T, R> implements Subscriber<T> {
     Subscriber sub;
 
-    public DelegateSub(Subscriber<? super T> subscriber) {
+    public DelegateSub(Subscriber<? super R> subscriber) {
         this.sub = subscriber;
     }
 
