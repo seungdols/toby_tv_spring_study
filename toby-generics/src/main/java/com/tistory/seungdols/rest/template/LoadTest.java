@@ -1,5 +1,6 @@
 package com.tistory.seungdols.rest.template;
 
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -24,12 +25,17 @@ public class LoadTest {
         RestTemplate restTemplate = new RestTemplate();
         String url = "http://localhost:8080/rest";
 
+        CyclicBarrier barrier = new CyclicBarrier(100);
+
         StopWatch main = new StopWatch();
         main.start();
 
         for (int i = 0; i < 100; i++) {
-            es.execute(() -> {
+            es.submit(() -> {
                 int idx = counter.addAndGet(1);
+
+                barrier.await();
+
                 log.debug("Thread {}", idx);
 
                 StopWatch stopWatch = new StopWatch();
@@ -38,6 +44,8 @@ public class LoadTest {
                 restTemplate.getForObject(url, String.class);
                 stopWatch.stop();
                 log.info("Elapsed: {} {}", idx, stopWatch.getTotalTimeSeconds());
+
+                return null;
             });
         }
 
