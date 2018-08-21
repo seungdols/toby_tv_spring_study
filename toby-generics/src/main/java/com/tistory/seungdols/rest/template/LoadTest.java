@@ -41,9 +41,10 @@ public class LoadTest {
                 StopWatch stopWatch = new StopWatch();
                 stopWatch.start();
 
-                restTemplate.getForObject(url, String.class);
+                String res = restTemplate.getForObject(url, String.class, idx);
+
                 stopWatch.stop();
-                log.info("Elapsed: {} {}", idx, stopWatch.getTotalTimeSeconds());
+                log.info("Elapsed: {} {} {}", idx, stopWatch.getTotalTimeSeconds(), res);
 
                 return null;
             });

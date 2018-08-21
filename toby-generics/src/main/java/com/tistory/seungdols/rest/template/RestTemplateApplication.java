@@ -17,8 +17,8 @@ public class RestTemplateApplication {
     public static class MyController {
 
         @RequestMapping("/rest")
-        public String rest() {
-            return "hello"; //http body 내에 포함 되게 된다.
+        public String rest(int rest) {
+            return "hello " + rest; //http body 내에 포함 되게 된다.
         }
 
     }
