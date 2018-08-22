@@ -28,10 +28,7 @@ public class LoadTest {
 
         CyclicBarrier barrier = new CyclicBarrier(100);
 
-        StopWatch main = new StopWatch();
-        main.start();
-
-        for (int i = 0; i < 100; i++) {
+        for (int i = 1; i <= 100; i++) {
             es.submit(() -> {
                 int idx = counter.addAndGet(1);
 
@@ -51,13 +48,16 @@ public class LoadTest {
             });
         }
 
-        barrier.await();
+//        barrier.await();
+        StopWatch main = new StopWatch();
+        main.start();
 
         es.shutdown();
         es.awaitTermination(100, TimeUnit.SECONDS);
 
         main.stop();
         log.info("Total: {}", main.getTotalTimeSeconds());
+
     }
 
 }
