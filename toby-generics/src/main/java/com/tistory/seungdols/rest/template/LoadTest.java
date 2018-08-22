@@ -1,5 +1,6 @@
 package com.tistory.seungdols.rest.template;
 
+import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -19,11 +20,11 @@ public class LoadTest {
 
     static AtomicInteger counter = new AtomicInteger(0);
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException, BrokenBarrierException {
         ExecutorService es = Executors.newFixedThreadPool(100);
 
         RestTemplate restTemplate = new RestTemplate();
-        String url = "http://localhost:8080/rest";
+        String url = "http://localhost:8080/rest?idx={idx}";
 
         CyclicBarrier barrier = new CyclicBarrier(100);
 
@@ -36,7 +37,7 @@ public class LoadTest {
 
                 barrier.await();
 
-                log.debug("Thread {}", idx);
+                log.info("Thread {}", idx);
 
                 StopWatch stopWatch = new StopWatch();
                 stopWatch.start();
@@ -44,11 +45,13 @@ public class LoadTest {
                 String res = restTemplate.getForObject(url, String.class, idx);
 
                 stopWatch.stop();
-                log.info("Elapsed: {} {} {}", idx, stopWatch.getTotalTimeSeconds(), res);
+                log.info("Elapsed: {} {} / {}", idx, stopWatch.getTotalTimeSeconds(), res);
 
                 return null;
             });
         }
+
+        barrier.await();
 
         es.shutdown();
         es.awaitTermination(100, TimeUnit.SECONDS);

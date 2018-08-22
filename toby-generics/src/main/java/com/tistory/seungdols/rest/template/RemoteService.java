@@ -4,30 +4,28 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
 
 /**
  * @PACKAGE com.tistory.seungdols.rest.template
  * @AUTHOR seungdols
- * @DATE 2018. 8. 21.
+ * @DATE 2018. 8. 22.
  */
 @SpringBootApplication
-public class RestTemplateApplication {
+public class RemoteService {
 
     @RestController
     public static class MyController {
 
-        RestTemplate rt = new RestTemplate();
-
-        @RequestMapping("/rest")
-        public String rest(int idx) {
-            String res = rt.getForObject("http://localhost:8081/service?req={req}", String.class, "hello" + idx);
-            return res; //http body 내에 포함 되게 된다.
+        @RequestMapping("/service")
+        public String rest(String req) {
+            return req + " /service"; //http body 내에 포함 되게 된다.
         }
 
     }
 
     public static void main(String[] args) {
-        SpringApplication.run(RestTemplateApplication.class, args);
+        System.setProperty("server.port", "8081");
+        System.setProperty("server.tomcat.max-threads", "1000");
+        SpringApplication.run(RemoteService.class, args);
     }
 }
