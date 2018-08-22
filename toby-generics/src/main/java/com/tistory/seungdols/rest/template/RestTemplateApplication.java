@@ -2,9 +2,11 @@ package com.tistory.seungdols.rest.template;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.AsyncRestTemplate;
 
 /**
  * @PACKAGE com.tistory.seungdols.rest.template
@@ -17,11 +19,11 @@ public class RestTemplateApplication {
     @RestController
     public static class MyController {
 
-        RestTemplate rt = new RestTemplate();
+        AsyncRestTemplate rt = new AsyncRestTemplate();
 
         @RequestMapping("/rest")
-        public String rest(int idx) {
-            String res = rt.getForObject("http://localhost:8081/service?req={req}", String.class, "hello" + idx);
+        public ListenableFuture<ResponseEntity<String>> rest(int idx) {
+            ListenableFuture<ResponseEntity<String>> res = rt.getForEntity("http://localhost:8081/service?req={req}", String.class, "hello" + idx);
             return res; //http body 내에 포함 되게 된다.
         }
 
