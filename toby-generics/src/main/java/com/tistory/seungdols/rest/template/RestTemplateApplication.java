@@ -9,6 +9,7 @@ import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.AsyncRestTemplate;
+import org.springframework.web.context.request.async.DeferredResult;
 
 /**
  * @PACKAGE com.tistory.seungdols.rest.template
@@ -24,9 +25,22 @@ public class RestTemplateApplication {
         AsyncRestTemplate rt = new AsyncRestTemplate(new Netty4ClientHttpRequestFactory(new NioEventLoopGroup(1)));
 
         @RequestMapping("/rest")
-        public ListenableFuture<ResponseEntity<String>> rest(int idx) {
+        public DeferredResult<String> rest(int idx) {
+            DeferredResult<String> deferredResult = new DeferredResult<>();
             ListenableFuture<ResponseEntity<String>> res = rt.getForEntity("http://localhost:8081/service?req={req}", String.class, "hello" + idx);
-            return res; //http body 내에 포함 되게 된다.
+
+//            res.get() 이렇게 쓰면 블럭킹.
+
+            //Callback 방식으로 비동기 요청에 대한 결과를 가공 하는 방법.
+            res.addCallback(s -> {
+                deferredResult.setResult(s.getBody() + " /work");
+            }, e -> {
+                deferredResult.setErrorResult(e.getMessage());
+            });
+
+            return deferredResult; //http body 내에 포함 되게 된다.
+
+
         }
 
     }
