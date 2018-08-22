@@ -16,11 +16,19 @@ public class RemoteService {
     @RestController
     public static class MyController {
 
-        @RequestMapping("/service")
-        public String rest(String req) throws InterruptedException {
+        @RequestMapping("/service1")
+        public String service1(String req) throws InterruptedException {
 
             Thread.sleep(2000);
-            return req + " /service"; //http body 내에 포함 되게 된다.
+            return req + " /service1"; //http body 내에 포함 되게 된다.
+
+        }
+
+        @RequestMapping("/service2")
+        public String service2(String req) throws InterruptedException {
+
+            Thread.sleep(2000);
+            return req + " /service2"; //http body 내에 포함 되게 된다.
 
         }
 

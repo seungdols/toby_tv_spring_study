@@ -27,13 +27,18 @@ public class RestTemplateApplication {
         @RequestMapping("/rest")
         public DeferredResult<String> rest(int idx) {
             DeferredResult<String> deferredResult = new DeferredResult<>();
-            ListenableFuture<ResponseEntity<String>> res = rt.getForEntity("http://localhost:8081/service?req={req}", String.class, "hello" + idx);
+            ListenableFuture<ResponseEntity<String>> res1 = rt.getForEntity("http://localhost:8081/service1?req={req}", String.class, "hello" + idx);
 
 //            res.get() 이렇게 쓰면 블럭킹.
 
             //Callback 방식으로 비동기 요청에 대한 결과를 가공 하는 방법.
-            res.addCallback(s -> {
-                deferredResult.setResult(s.getBody() + " /work");
+            res1.addCallback(s -> {
+                ListenableFuture<ResponseEntity<String>> res2 = rt.getForEntity("http://localhost:8081/service2?req={req}", String.class, s.getBody());
+                res2.addCallback(s2 -> {
+                    deferredResult.setResult(s2.getBody());
+                }, e2 -> {
+                    deferredResult.setErrorResult(e2.getMessage());
+                });
             }, e -> {
                 deferredResult.setErrorResult(e.getMessage());
             });
