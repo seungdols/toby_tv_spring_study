@@ -1,5 +1,7 @@
 package com.tistory.seungdols.generics.reactive3;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -34,7 +36,13 @@ public class SchedulerEx {
             });
         };
 
-        pub.subscribe(new Subscriber<Integer>() {
+        //SubscribeOn 구현
+        Publisher<Integer> subOnPub = sub -> {
+            ExecutorService es = Executors.newSingleThreadExecutor();
+            es.execute(() -> pub.subscribe(sub));
+        };
+
+        subOnPub.subscribe(new Subscriber<Integer>() {
             @Override
             public void onSubscribe(Subscription s) {
                 log.debug("onSubscribe()");
