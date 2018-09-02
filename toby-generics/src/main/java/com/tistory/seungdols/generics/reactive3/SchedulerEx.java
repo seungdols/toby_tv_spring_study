@@ -46,7 +46,32 @@ public class SchedulerEx {
                     return "subOn - ";
                 }
             });
-            es.execute(() -> pub.subscribe(sub));
+//            es.execute(() -> pub.subscribe(sub));
+            es.execute(() -> {
+                pub.subscribe(new Subscriber<Integer>() {
+                    @Override
+                    public void onSubscribe(Subscription s) {
+                        sub.onSubscribe(s);
+                    }
+
+                    @Override
+                    public void onNext(Integer integer) {
+                        es.execute(() -> sub.onNext(integer));
+                    }
+
+                    @Override
+                    public void onError(Throwable t) {
+                        es.execute(() -> sub.onError(t));
+                        es.shutdown();
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        es.execute(() -> sub.onComplete());
+                        es.shutdown();
+                    }
+                });
+            });
         };
 
         Publisher pubOnPub = sub -> {
@@ -71,11 +96,13 @@ public class SchedulerEx {
                 @Override
                 public void onError(Throwable t) {
                     es.execute(() -> sub.onError(t));
+                    es.shutdown();
                 }
 
                 @Override
                 public void onComplete() {
                     es.execute(() -> sub.onComplete());
+                    es.shutdown();
                 }
             });
         };
