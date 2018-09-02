@@ -8,3 +8,6 @@
 ### 시청 순서 
 
 * [x] Generic1,2 
+* [x] Reactive Streams 1
+* [x] Reactive Streams 2 - Operator
+* [x] Reactive Streams 5 - 비동기 RestTemplate과 비동기 MVC/Servlet(발표이기에 먼저 시청함)
