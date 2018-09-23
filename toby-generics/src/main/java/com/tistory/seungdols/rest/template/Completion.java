@@ -2,7 +2,6 @@ package com.tistory.seungdols.rest.template;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
-import org.springframework.http.ResponseEntity;
 import org.springframework.util.concurrent.ListenableFuture;
 
 /**
@@ -10,30 +9,31 @@ import org.springframework.util.concurrent.ListenableFuture;
  * @AUTHOR seungdols
  * @DATE 2018-09-23
  */
-public class Completion {
+public class Completion<S, T> {
 
     Completion next;
 
 
-    public void andAccept(Consumer<ResponseEntity<String>> con) {
-        Completion c = new AcceptCompletion(con);
+    public void andAccept(Consumer<T> con) {
+        Completion<T, Void> c = new AcceptCompletion<>(con);
         this.next = c;
     }
 
-    public Completion andError(Consumer<Throwable> error) {
-        Completion c = new ErrorCompletion(error);
-        this.next = c;
-        return c;
-    }
-
-    public Completion andApply(Function<ResponseEntity<String>, ListenableFuture<ResponseEntity<String>>> fn) {
-        Completion c = new ApplyCompletion(fn);
+    public Completion<T, T> andError(Consumer<Throwable> error) {
+        Completion<T, T> c = new ErrorCompletion(error);
         this.next = c;
         return c;
     }
 
-    public static Completion from(ListenableFuture<ResponseEntity<String>> lf) {
-        Completion c = new Completion();
+    //retun type에도 Type parameter를 지정해주어야 한다.
+    public <V> Completion<T, V> andApply(Function<T, ListenableFuture<V>> fn) {
+        Completion<T, V> c = new ApplyCompletion(fn);
+        this.next = c;
+        return c;
+    }
+
+    public static <S, T> Completion<S, T> from(ListenableFuture<T> lf) {
+        Completion<S, T> c = new Completion();
         lf.addCallback(s -> {
             c.complete(s);
         }, e -> {
@@ -49,13 +49,13 @@ public class Completion {
         }
     }
 
-    public void complete(ResponseEntity<String> s) {
+    public void complete(T s) {
         if (next != null) {
             next.run(s);
         }
     }
 
-    void run(ResponseEntity<String> value) {
+    void run(S value) {
 
     }
 

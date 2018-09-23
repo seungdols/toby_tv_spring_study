@@ -1,24 +1,24 @@
 package com.tistory.seungdols.rest.template;
 
 import java.util.function.Consumer;
-import org.springframework.http.ResponseEntity;
 
 /**
  * @PACKAGE com.tistory.seungdols.rest.template
  * @AUTHOR seungdols
  * @DATE 2018-09-24
  */
-public class AcceptCompletion extends Completion {
+public class AcceptCompletion<S> extends Completion<S, Void> {
 
-    Consumer<ResponseEntity<String>> con;
+    Consumer<S> con;
+
+    public AcceptCompletion(Consumer<S> con) {
+        this.con = con;
+    }
 
     @Override
-    void run(ResponseEntity<String> value) {
+    void run(S value) {
         con.accept(value);
     }
 
-    public AcceptCompletion(Consumer<ResponseEntity<String>> con) {
-        this.con = con;
-    }
 
 }

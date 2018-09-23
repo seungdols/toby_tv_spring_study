@@ -1,7 +1,6 @@
 package com.tistory.seungdols.rest.template;
 
 import java.util.function.Function;
-import org.springframework.http.ResponseEntity;
 import org.springframework.util.concurrent.ListenableFuture;
 
 /**
@@ -9,18 +8,18 @@ import org.springframework.util.concurrent.ListenableFuture;
  * @AUTHOR seungdols
  * @DATE 2018-09-24
  */
-public class ApplyCompletion extends Completion {
+public class ApplyCompletion<S, T> extends Completion<S, T> {
 
-    Function<ResponseEntity<String>, ListenableFuture<ResponseEntity<String>>> fn;
+    Function<S, ListenableFuture<T>> fn;
 
-    @Override
-    void run(ResponseEntity<String> value) {
-        ListenableFuture<ResponseEntity<String>> lf = fn.apply(value);
-        lf.addCallback(s -> complete(s), e -> error(e));
+    public ApplyCompletion(Function<S, ListenableFuture<T>> fn) {
+        this.fn = fn;
     }
 
-    public ApplyCompletion(Function<ResponseEntity<String>, ListenableFuture<ResponseEntity<String>>> fn) {
-        this.fn = fn;
+    @Override
+    void run(S value) {
+        ListenableFuture<T> lf = fn.apply(value);
+        lf.addCallback(s -> complete(s), e -> error(e));
     }
 
 }
