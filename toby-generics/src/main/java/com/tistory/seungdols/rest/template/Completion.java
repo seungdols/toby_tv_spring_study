@@ -13,27 +13,15 @@ import org.springframework.util.concurrent.ListenableFuture;
 public class Completion {
 
     Completion next;
-    Consumer<ResponseEntity<String>> con;
-    Function<ResponseEntity<String>, ListenableFuture<ResponseEntity<String>>> fn;
 
-    public Completion() {
-    }
-
-    public Completion(Consumer<ResponseEntity<String>> con) {
-        this.con = con;
-    }
-
-    public Completion(Function<ResponseEntity<String>, ListenableFuture<ResponseEntity<String>>> fn) {
-        this.fn = fn;
-    }
 
     public void andAccept(Consumer<ResponseEntity<String>> con) {
-        Completion c = new Completion(con);
+        Completion c = new AcceptCompletion(con);
         this.next = c;
     }
 
     public Completion andApply(Function<ResponseEntity<String>, ListenableFuture<ResponseEntity<String>>> fn) {
-        Completion c = new Completion(fn);
+        Completion c = new ApplyCompletion(fn);
         this.next = c;
         return c;
     }
@@ -49,22 +37,17 @@ public class Completion {
         return c;
     }
 
-    private void error(Throwable e) {
+    public void error(Throwable e) {
     }
 
-    private void complete(ResponseEntity<String> s) {
+    public void complete(ResponseEntity<String> s) {
         if (next != null) {
             next.run(s);
         }
     }
 
     void run(ResponseEntity<String> value) {
-        if (con != null) {
-            con.accept(value);
-        } else if (fn != null) {
-            ListenableFuture<ResponseEntity<String>> lf = fn.apply(value);
-            lf.addCallback(s -> complete(s), e -> error(e));
-        }
+
     }
 
 
