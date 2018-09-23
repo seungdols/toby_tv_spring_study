@@ -20,6 +20,12 @@ public class Completion {
         this.next = c;
     }
 
+    public Completion andError(Consumer<Throwable> error) {
+        Completion c = new ErrorCompletion(error);
+        this.next = c;
+        return c;
+    }
+
     public Completion andApply(Function<ResponseEntity<String>, ListenableFuture<ResponseEntity<String>>> fn) {
         Completion c = new ApplyCompletion(fn);
         this.next = c;
@@ -38,6 +44,9 @@ public class Completion {
     }
 
     public void error(Throwable e) {
+        if (next != null) {
+            next.error(e);
+        }
     }
 
     public void complete(ResponseEntity<String> s) {
