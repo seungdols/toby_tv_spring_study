@@ -40,6 +40,7 @@ public class RestTemplateApplication {
             String url2 = "http://localhost:8081/service2?req={req}";
 
             Completion.from(rt.getForEntity(url1, String.class, "hello" + idx))
+                      .andApply(s -> rt.getForEntity(url2, String.class, s.getBody()))
                       .andAccept(s -> deferredResult.setResult(s.getBody()));
 
 //            ListenableFuture<ResponseEntity<String>> res1 = rt.getForEntity(url1, String.class, "hello" + idx);
