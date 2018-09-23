@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.Netty4ClientHttpRequestFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
@@ -40,26 +39,29 @@ public class RestTemplateApplication {
             String url1 = "http://localhost:8081/service1?req={req}";
             String url2 = "http://localhost:8081/service2?req={req}";
 
-            ListenableFuture<ResponseEntity<String>> res1 = rt.getForEntity(url1, String.class, "hello" + idx);
+            Completion.from(rt.getForEntity(url1, String.class, "hello" + idx))
+                      .andAccept(s -> deferredResult.setResult(s.getBody()));
+
+//            ListenableFuture<ResponseEntity<String>> res1 = rt.getForEntity(url1, String.class, "hello" + idx);
 
 //            res.get() 이렇게 쓰면 블럭킹.
 
-            //Callback 방식으로 비동기 요청에 대한 결과를 가공 하는 방법....Callback Hell....!!!Fuck Callback..!
-            res1.addCallback(s -> {
-                ListenableFuture<ResponseEntity<String>> res2 = rt.getForEntity(url2, String.class, s.getBody());
-                res2.addCallback(s2 -> {
-                    ListenableFuture<String> workRes = service.work(s2.getBody());
-                    workRes.addCallback(s3 -> {
-                        deferredResult.setResult(s3);
-                    }, e3 -> {
-                        deferredResult.setErrorResult(e3.getMessage());
-                    });
-                }, e2 -> {
-                    deferredResult.setErrorResult(e2.getMessage());//에러 처리에 대한 중복코드 발생.
-                });
-            }, e -> {
-                deferredResult.setErrorResult(e.getMessage());
-            });
+//            //Callback 방식으로 비동기 요청에 대한 결과를 가공 하는 방법....Callback Hell....!!!Fuck Callback..!
+//            res1.addCallback(s -> {
+//                ListenableFuture<ResponseEntity<String>> res2 = rt.getForEntity(url2, String.class, s.getBody());
+//                res2.addCallback(s2 -> {
+//                    ListenableFuture<String> workRes = service.work(s2.getBody());
+//                    workRes.addCallback(s3 -> {
+//                        deferredResult.setResult(s3);
+//                    }, e3 -> {
+//                        deferredResult.setErrorResult(e3.getMessage());
+//                    });
+//                }, e2 -> {
+//                    deferredResult.setErrorResult(e2.getMessage());//에러 처리에 대한 중복코드 발생.
+//                });
+//            }, e -> {
+//                deferredResult.setErrorResult(e.getMessage());
+//            });
 
             return deferredResult; //http body 내에 포함 되게 된다.
 
@@ -94,3 +96,4 @@ public class RestTemplateApplication {
         SpringApplication.run(RestTemplateApplication.class, args);
     }
 }
+
