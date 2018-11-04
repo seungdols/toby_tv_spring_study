@@ -1,6 +1,7 @@
 package com.tistory.seungdols.rest.template;
 
 import io.netty.channel.nio.NioEventLoopGroup;
+import java.util.concurrent.CompletableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -39,16 +40,7 @@ public class RestTemplateApplication {
             String url1 = "http://localhost:8081/service1?req={req}";
             String url2 = "http://localhost:8081/service2?req={req}";
 
-            Completion.from(rt.getForEntity(url1, String.class, "hello" + idx))
-                      .andApply(s -> rt.getForEntity(url2, String.class, s.getBody()))
-                      .andApply(s -> service.work(s.getBody()))
-                      .andError(e -> deferredResult.setErrorResult(e))
-                      .andAccept(s -> deferredResult.setResult(s));
-
 //            ListenableFuture<ResponseEntity<String>> res1 = rt.getForEntity(url1, String.class, "hello" + idx);
-
-//            res.get() 이렇게 쓰면 블럭킹.
-
 //            //Callback 방식으로 비동기 요청에 대한 결과를 가공 하는 방법....Callback Hell....!!!Fuck Callback..!
 //            res1.addCallback(s -> {
 //                ListenableFuture<ResponseEntity<String>> res2 = rt.getForEntity(url2, String.class, s.getBody());
@@ -66,9 +58,30 @@ public class RestTemplateApplication {
 //                deferredResult.setErrorResult(e.getMessage());
 //            });
 
+/*            Completion.from(rt.getForEntity(url1, String.class, "hello" + idx))
+                      .andApply(s -> rt.getForEntity(url2, String.class, s.getBody()))
+                      .andApply(s -> service.work(s.getBody()))
+                      .andError(e -> deferredResult.setErrorResult(e))
+                      .andAccept(s -> deferredResult.setResult(s));*/
+
+            toCF(rt.getForEntity(url1, String.class, "hello" + idx))
+                .thenCompose(s -> toCF(rt.getForEntity(url2, String.class, s.getBody())))
+                .thenCompose(s2 -> toCF(service.work(s2.getBody())))
+                .thenAccept(s3 -> deferredResult.setResult(s3))
+                .exceptionally(e -> {
+                    deferredResult.setErrorResult(e.getMessage());
+                    return (Void) null;
+                });
+
             return deferredResult; //http body 내에 포함 되게 된다.
 
 
+        }
+
+        <T> CompletableFuture<T> toCF(ListenableFuture<T> lf) {
+            CompletableFuture<T> cf = new CompletableFuture<>();
+            lf.addCallback(s -> cf.complete(s), e -> cf.completeExceptionally(e));
+            return cf;
         }
 
         @Service
