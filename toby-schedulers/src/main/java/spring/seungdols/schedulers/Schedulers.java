@@ -36,13 +36,13 @@ public class Schedulers {
             });
         };
 
-//        Publisher<Integer> subOnPub = sub -> {
-//            ExecutorService es = Executors.newSingleThreadExecutor();
-//            es.execute(() -> pub.subscribe(sub));
-//        };
+        Publisher<Integer> subOnPub = sub -> {
+            ExecutorService es = Executors.newSingleThreadExecutor();
+            es.execute(() -> pub.subscribe(sub));
+        };
 
         Publisher<Integer> pubOnPub = sub -> {
-            pub.subscribe(new Subscriber<Integer>() {
+            subOnPub.subscribe(new Subscriber<Integer>() {
 
                 ExecutorService es = Executors.newSingleThreadExecutor();
 
