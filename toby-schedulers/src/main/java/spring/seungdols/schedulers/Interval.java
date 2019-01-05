@@ -4,10 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @PACKAGE spring.seungdols.schedulers
@@ -15,66 +15,68 @@ import java.util.concurrent.Executors;
  * @DATE 05/01/2019
  */
 @Slf4j
-public class Schedulers {
+public class Interval {
     public static void main(String[] args) {
         Publisher<Integer> pub = sub -> {
             sub.onSubscribe(new Subscription() {
+                int no = 0;
+                boolean cancelled = false;
+
                 @Override
                 public void request(long n) {
-                    log.debug("reqeust()");
-                    sub.onNext(1);
-                    sub.onNext(2);
-                    sub.onNext(3);
-                    sub.onNext(4);
-                    sub.onNext(5);
-                    sub.onComplete();
+                    ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
+                    exec.scheduleAtFixedRate(() -> {
+                        if (cancelled) {
+                            exec.shutdown();
+                            return;
+                        }
+                        sub.onNext(no++);
+                    }, 0, 500, TimeUnit.MILLISECONDS);
                 }
 
                 @Override
                 public void cancel() {
-
+                    cancelled = true;
+                    log.debug("cancel()");
                 }
             });
         };
 
-        Publisher<Integer> subOnPub = sub -> {
-            ExecutorService es = Executors.newSingleThreadExecutor(new CustomizableThreadFactory("subOn - "));
-            es.execute(() -> pub.subscribe(sub));
-        };
-
-        Publisher<Integer> pubOnPub = sub -> {
-            subOnPub.subscribe(new Subscriber<Integer>() {
-
-                ExecutorService es = Executors.newSingleThreadExecutor(new CustomizableThreadFactory("pubOn - "));
+        Publisher<Integer> takePub = sub -> {
+            pub.subscribe(new Subscriber<Integer>() {
+                int count = 0;
+                Subscription subsc;
 
                 @Override
                 public void onSubscribe(Subscription s) {
+                    subsc = s;
                     sub.onSubscribe(s);
                 }
 
                 @Override
                 public void onNext(Integer integer) {
-                    es.execute(() -> sub.onNext(integer));
+                    sub.onNext(integer);
+                    if (++count > 5) {
+                        subsc.cancel();
+                    }
                 }
 
                 @Override
                 public void onError(Throwable t) {
-                    es.execute(() -> sub.onError(t));
-                    es.shutdown();
+                    sub.onError(t);
                 }
 
                 @Override
                 public void onComplete() {
-                    es.execute(() -> sub.onComplete());
-                    es.shutdown();
+                    sub.onComplete();
                 }
             });
         };
 
-        pubOnPub.subscribe(new Subscriber<Integer>() {
+        takePub.subscribe(new Subscriber<Integer>() {
             @Override
             public void onSubscribe(Subscription s) {
-                log.debug("onSubscribe");
+                log.debug("onSubscribe()");
                 s.request(Long.MAX_VALUE);
             }
 
@@ -85,14 +87,14 @@ public class Schedulers {
 
             @Override
             public void onError(Throwable t) {
-                log.debug("onError: {}", t);
+                log.debug("onError: {}", t.getMessage());
             }
 
             @Override
             public void onComplete() {
-                log.debug("onComplete");
+                log.debug("onComplete()");
             }
         });
-        System.out.println("Exit");
     }
+
 }
