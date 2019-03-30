@@ -16,6 +16,7 @@ public class MonoApplication {
 	Mono<String> hello() {
 	    log.info("pos1");
 		Mono<String> hello_webFlux = Mono.fromSupplier(() -> generateHello()).doOnNext(c -> log.info(c)).log();
+		hello_webFlux.subscribe();
 		log.info("pos2");
 		return hello_webFlux;
 	}
