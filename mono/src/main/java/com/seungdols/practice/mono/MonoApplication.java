@@ -15,8 +15,7 @@ public class MonoApplication {
 	@GetMapping("/")
 	Mono<String> hello() {
 	    log.info("pos1");
-		String s = generateHello();
-		Mono<String> hello_webFlux = Mono.just(s).doOnNext(c -> log.info(c)).log();
+		Mono<String> hello_webFlux = Mono.fromSupplier(() -> generateHello()).doOnNext(c -> log.info(c)).log();
 		log.info("pos2");
 		return hello_webFlux;
 	}
