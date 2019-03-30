@@ -1,5 +1,6 @@
 package com.seungdols.mono;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -18,6 +19,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 @SpringBootApplication
 @EnableAsync
 public class MonoApplication {
@@ -30,7 +32,7 @@ public class MonoApplication {
         @Autowired
         MyService myService;
 
-        WebClient webClient = WebClient.create();
+        WebClient webClient = WebClient.builder().build();
 
         @GetMapping("/rest")
         public Mono<String> rest(int idx) {
@@ -38,34 +40,23 @@ public class MonoApplication {
                     .flatMap(clientResponse -> clientResponse.bodyToMono(String.class))
                     .flatMap(res1 -> webClient.get().uri(url2, res1).exchange())
                     .flatMap(c -> c.bodyToMono(String.class))
-                    .flatMap(res2 -> Mono.fromCompletionStage(myService.work(res2)));
+                    .doOnNext(c -> log.info(c))
+                    .flatMap(res2 -> Mono.fromCompletionStage(myService.work(res2)))
+                    .doOnNext(c -> log.info(c));
         }
     }
 
 
     @Service
     public static class MyService {
-
         @Async
         public CompletableFuture<String> work (String req) {
             return CompletableFuture.completedFuture(req + "/asyncWork");
         }
     }
-    @Bean
-    public ThreadPoolTaskExecutor myThreadTool() {
-        /**
-         * Core, Max Pool, Queue 총 3가지를 설정 할 수 있다.
-         * Core가 다 차면, Queue를 채우고, Max Pool 사이즈까지 채운다. (Java 기본 동작)
-         */
-        ThreadPoolTaskExecutor te = new ThreadPoolTaskExecutor();//Queue Size가 무한대임.
-        te.setCorePoolSize(1);
-        te.setMaxPoolSize(1);
-        te.initialize();
-        return te;
-    }
 
     public static void main(String[] args) {
-        System.setProperty("reactor.ipc.netty.workerCount", "2");
+        System.setProperty("reactor.ipc.netty.workerCount", "1");
         System.setProperty("reactor.ipc.netty.pool.maxConnections", "2000");
         SpringApplication.run(MonoApplication.class, args);
     }
