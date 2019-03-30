@@ -15,10 +15,17 @@ public class MonoApplication {
 	@GetMapping("/")
 	Mono<String> hello() {
 	    log.info("pos1");
-		Mono<String> hello_webFlux = Mono.just("Hello WebFlux").doOnNext(c -> log.info(c)).log();
+		String s = generateHello();
+		Mono<String> hello_webFlux = Mono.just(s).doOnNext(c -> log.info(c)).log();
 		log.info("pos2");
 		return hello_webFlux;
 	}
+
+	private String generateHello() {
+		log.info("method generateHello");
+		return "Hello Mono";
+	}
+
 	public static void main(String[] args) {
 		SpringApplication.run(MonoApplication.class, args);
 	}
