@@ -34,3 +34,31 @@
 위와 같은 것을 Cold Source라고 한다. 
 
 외부에서 데이터가 오는 경우, 외부에 대한 이벤트에 대한 데이터는 Hot Source라고 한다. 그럴 경우 위와 동작이 다르다. 
+
+```java
+	@GetMapping("/")
+	Mono<String> hello() {
+	    log.info("pos1");
+		String m = generateHello();
+		Mono<String> hello_webFlux = Mono.just(m).doOnNext(c -> log.info(c)).log();
+		String m2 = hello_webFlux.block();
+		log.info("pos2", m2);
+		return hello_webFlux;
+	}
+```
+
+`block()`을 호출하게 되면, 한 번 다시 꺼내는 일을 하게 되는데, 내부적으로 `subscribe`를 한 번 호출하는 효과를 준다.
+
+```java
+	@GetMapping("/")
+	Mono<String> hello() {
+	    log.info("pos1");
+		String m = generateHello();
+		Mono<String> hello_webFlux = Mono.just(m).doOnNext(c -> log.info(c)).log();
+		String m2 = hello_webFlux.block();
+		log.info("pos2", m2);
+		return Mono.just(m2);
+	}
+```
+
+소스 내에서는 `block()`를 호출하는 것은 좋지 않다. 그래서 `Mono`에 넘기기 전에 새로운 `Mono`에 담아서 전달해주는 것이 좋다. 

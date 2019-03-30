@@ -15,10 +15,11 @@ public class MonoApplication {
 	@GetMapping("/")
 	Mono<String> hello() {
 	    log.info("pos1");
-		Mono<String> hello_webFlux = Mono.fromSupplier(() -> generateHello()).doOnNext(c -> log.info(c)).log();
-		hello_webFlux.subscribe();
-		log.info("pos2");
-		return hello_webFlux;
+		String m = generateHello();
+		Mono<String> hello_webFlux = Mono.just(m).doOnNext(c -> log.info(c)).log();
+		String m2 = hello_webFlux.block();
+		log.info("pos2", m2);
+		return Mono.just(m2);
 	}
 
 	private String generateHello() {
